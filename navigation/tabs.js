@@ -52,6 +52,7 @@ const Tabs = ({setTradeModalVisibility, isTradeModalVisible}) => {
                 name="Home"
                 component={Home}
                 options={{
+
                     tabBarIcon: ({focused}) => {
                         if (!isTradeModalVisible) {
                             return (
