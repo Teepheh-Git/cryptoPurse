@@ -11,7 +11,6 @@ export const GET_COIN_MARKET_FAILURE = "GET_COIN_MARKET_FAILURE"
 
 
 // Holdings / my holdings to
-
 export const getHoldingsBegin = () => ({
     type: GET_HOLDINGS_BEGIN
 })
@@ -43,40 +42,39 @@ export function getHoldings(holdings = [], currency = "usd", orderBy = "market_c
             headers: {
                 Accept: "application/json"
             }
-        }).then((response) => {
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    // massage data
+                    let myHoldings = response.data.map((item) => {
 
 
-            console.log('GetHoldings')
-            console.log(response)
+                        // console.log('price change')
+                        // console.log(item.price_change_percentage_7d_in_currency)
 
+                        //    retrieve our current holdings to  get the current quantity
+                        let coin = holdings.find(a => a.id === item.id)
 
-            if (response.status === 200) {
-                // massage data
-                let myHoldings = response.data.map((item) => {
+                        //    price from seven days ago
+                        let price7d = item.current_price / (1 + item.price_change_percentage_7d_in_currency * 0.01)
 
-                    //    retrieve our current holdings to  get the current quantity
-                    let coin = holdings.find(a => a.id === item.id)
-
-                    //    price from seven days ago
-
-                    let price7d = item.current_price / (1 + item.price_change_percentage_7d_in_currency * 0.01)
-
-
-                    return {
-                        id: item.id,
-                        symbol: item.symbol,
-                        name: item.name,
-                        current_price: item.current_price,
-                        qty: item.qty,
-                        total: coin.qty * item.current_price,
-                        price_change_percentage_7d_in_currency: item.price_change_percentage_7d_in_currency,
-                        holding_value_change_7d: (item.current_price - price7d) * coin.qty,
-                        sparkline_in_7d: {
-                            value: item.sparkline_in_7d.price.map((price) => {
-                                return price * coin.qty
-                            })
+                        return {
+                            id: item.id,
+                            symbol: item.symbol,
+                            name: item.name,
+                            image: item.image,
+                            current_price: item.current_price,
+                            qty: coin.qty,
+                            total: coin.qty * item.current_price,
+                            price_change_percentage_7d_in_currency: item.price_change_percentage_7d_in_currency,
+                            holding_value_change_7d: (item.current_price - price7d) * coin.qty,
+                            sparkline_in_7d: {
+                                value: item.sparkline_in_7d.price.map(
+                                    (price) => {
+                                        return price * coin.qty
+                                    }),
+                            }
                         }
-                    }
 
                 })
 
@@ -97,10 +95,12 @@ export const getCoinMarketBegin = () => ({
     type: GET_COIN_MARKET_BEGIN
 })
 export const getCoinMarketSuccess = (coins) => ({
-    type: GET_COIN_MARKET_SUCCESS
+    type: GET_COIN_MARKET_SUCCESS,
+    payload: {coins}
 })
 export const getCoinMarketFailure = (error) => ({
-    type: GET_COIN_MARKET_FAILURE
+    type: GET_COIN_MARKET_FAILURE,
+    payload: {error}
 })
 
 
@@ -108,7 +108,6 @@ export function getCoinMarket(currency = "usd", orderBy = "market_cap_desc", spa
 
     return dispatch => {
         let apiUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${currency}&order=${orderBy}&per_page=${perPage}&page=${page}&sparkline=${sparkline}&price_change_percentage=${priceChangePerc}`
-
 
         return axios({
             url: apiUrl,
@@ -118,7 +117,6 @@ export function getCoinMarket(currency = "usd", orderBy = "market_cap_desc", spa
             }
         }).then((response) => {
             if (response.status === 200) {
-
                 dispatch(getCoinMarketSuccess(response.data))
             } else {
                 dispatch(getCoinMarketFailure(response.data))
