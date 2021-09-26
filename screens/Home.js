@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {MainLayout} from './'
 import {BalanceInfo, Chart, IconTextButton} from "../components";
@@ -9,6 +9,8 @@ import {useFocusEffect} from "@react-navigation/native";
 import {COLORS, dummyData, FONTS, icons, SIZES} from "../constants";
 
 const Home = ({getHoldings, getCoinMarket, myHoldings, coins}) => {
+
+    const [selectedCoin, setSelectedCoin] = useState(null)
 
 
     useFocusEffect(
@@ -84,7 +86,9 @@ const Home = ({getHoldings, getCoinMarket, myHoldings, coins}) => {
 
                 {/*chart*/}
                 <Chart
-                    chartPrices={coins[0]?.sparkline_in_7d?.price}
+                    chartPrices={
+                        selectedCoin ? selectedCoin?.sparkline_in_7d?.price : coins[0]?.sparkline_in_7d?.price
+                    }
                     containerStyle={{
                         marginTop: SIZES.padding * 2,
                     }}
@@ -110,16 +114,16 @@ const Home = ({getHoldings, getCoinMarket, myHoldings, coins}) => {
                         </View>
                     }
                     renderItem={({item}) => {
-                        // console.log('price_change_percentage_7d_in_currency')
-                        // console.log(item.price_change_percentage_7d_in_currency)
-                        console.log(item.current_price)
+                        console.log('price_change_percentage_7d_in_currency')
+                        console.log(item.price_change_percentage_7d_in_currency)
+                        // console.log(item.current_price)
 
 
                         const priceColor = (item.price_change_percentage_7d_in_currency = 0) ? COLORS.lightGray3 : (item.price_change_percentage_7d_in_currency > 0) ? COLORS.lightGreen : COLORS.red;
 
                         return (
                             <TouchableOpacity
-                                // onPress={}
+                                onPress={() => setSelectedCoin(item)}
                                 style={{
                                     height: 55, flexDirection: 'row',
                                     alignItems: 'center',
@@ -181,18 +185,21 @@ const Home = ({getHoldings, getCoinMarket, myHoldings, coins}) => {
                                             lineHeight: 15
                                         }}>{item.price_change_percentage_7d_in_currency.toFixed(2)}%</Text>
 
-
-                                        {/*stopped at 1:46:30*/}
-
                                     </View>
-
-
                                 </View>
-
 
                             </TouchableOpacity>
                         )
                     }}
+
+
+                    ListFooterComponent={
+                        <View style={{
+                            marginBottom: 50
+                        }}/>
+
+
+                    }
 
 
                 />
